@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Receipt {
+  id            String   @id @default(cuid())
+  userId        String   // Clerk User ID
+  qrCodeData    String
+  receiptDate   DateTime
+  amount        Float
+  taxId         String?  // ATU Number
+  pointsEarned  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([receiptDate])
+}
+
+model PointsTransaction {
+  id          String   @id @default(cuid())
+  userId      String   // Clerk User ID
+  amount      Int
+  type        String   // "earn", "spend", "win"
+  description String?
+  receiptId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Voucher {
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  partnerName     String
+  partnerLogoUrl  String?
+  price           Float
+  pointsCost      Int      @default(0)
+  discountPercent Int      @default(0)
+  paymentMethod   String   @default("cash") // "cash" or "points" - determines which payment option is available
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model VoucherPurchase {
+  id              String   @id @default(cuid())
+  userId          String   // Clerk User ID
+  voucherId       String
+  stripeSessionId String?
+  status          String   // "pending", "completed", "failed"
+  amount          Float
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([stripeSessionId])
+}
+
+model Mission {
+  id                String    @id @default(cuid())
+  title             String
+  description       String    @db.Text
+  shortDescription  String?
+  type              String    // "daily", "weekly", "monthly", "one-time", "recurring"
+  category          String    // "shopping", "social", "engagement", "partner", "special"
+  difficulty        String    @default("medium") // "easy", "medium", "hard"
+  pointsReward      Int
+  bonusReward       Int       @default(0)
+  
+  // Requirements & validation
+  requirements      Json      // Flexible JSON for different requirement types
+  validationRules   Json?     // Custom validation rules
+  
+  // Scheduling
+  startDate         DateTime?
+  endDate           DateTime?
+  isActive          Boolean   @default(false)
+  isScheduled       Boolean   @default(false)
+  
+  // Display & ordering
+  imageUrl          String?
+  iconName          String?
+  displayOrder      Int       @default(0)
+  isFeatured        Boolean   @default(false)
+  isHidden          Boolean   @default(false)
+  
+  // Limits
+  maxCompletions    Int?      // Max completions per user (null = unlimited)
+  totalLimit        Int?      // Total completions across all users (null = unlimited)
+  currentCompletions Int      @default(0)
+  
+  // Metadata
+  tags              String[]
+  targetAudience    String?   // "all", "new_users", "premium", etc.
+  partnerName       String?
+  partnerLogoUrl    String?
+  
+  // Admin
+  createdBy         String    // Clerk User ID of creator
+  lastEditedBy      String?   // Clerk User ID of last editor
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  // Relations
+  userProgress      UserMissionProgress[]
+  analytics         MissionAnalytics[]
+
+  @@index([isActive, startDate, endDate])
+  @@index([type, category])
+  @@index([isFeatured, displayOrder])
+  @@index([createdBy])
+}
+
+model UserMissionProgress {
+  id              String    @id @default(cuid())
+  userId          String    // Clerk User ID
+  missionId       String
+  
+  // Progress tracking
+  status          String    @default("not_started") // "not_started", "in_progress", "completed", "expired", "failed"
+  progress        Json      // Flexible progress tracking
+  currentStep     Int       @default(0)
+  totalSteps      Int       @default(1)
+  
+  // Completion
+  completedAt     DateTime?
+  completionCount Int       @default(0)
+  rewardClaimed   Boolean   @default(false)
+  rewardClaimedAt DateTime?
+  
+  // Metadata
+  startedAt       DateTime  @default(now())
+  lastActivityAt  DateTime  @default(now())
+  expiresAt       DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  mission         Mission   @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionId])
+  @@index([userId, status])
+  @@index([missionId, status])
+  @@index([completedAt])
+}
+
+model MissionAnalytics {
+  id              String    @id @default(cuid())
+  missionId       String
+  date            DateTime  @default(now())
+  
+  // Engagement metrics
+  views           Int       @default(0)
+  starts          Int       @default(0)
+  completions     Int       @default(0)
+  failures        Int       @default(0)
+  
+  // User metrics
+  uniqueUsers     Int       @default(0)
+  newUsers        Int       @default(0)
+  returningUsers  Int       @default(0)
+  
+  // Performance metrics
+  avgCompletionTime Float?  // in minutes
+  completionRate    Float?  // percentage
+  dropoffRate       Float?  // percentage
+  
+  // Rewards distributed
+  totalPointsAwarded Int    @default(0)
+  totalBonusAwarded  Int    @default(0)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  mission         Mission   @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([missionId, date])
+  @@index([missionId])
+  @@index([date])
+}
