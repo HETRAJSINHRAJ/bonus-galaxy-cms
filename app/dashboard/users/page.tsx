@@ -82,15 +82,15 @@ export default function UsersPage() {
   }
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white">User Management</h1>
         <p className="text-gray-400 mt-2">Manage user accounts and permissions</p>
       </div>
 
       {/* Search and Stats */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-2">
+      <div className="mb-6 space-y-4">
+        <div>
           <input
             type="text"
             placeholder="Search users by name or email..."
@@ -99,41 +99,47 @@ export default function UsersPage() {
             className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
           />
         </div>
-        <div className="glass-dark rounded-xl border border-gray-700/50 p-4">
-          <p className="text-sm text-gray-400">Total Users</p>
-          <p className="text-2xl font-bold text-white mt-1">{users.length}</p>
-        </div>
-        <div className="glass-dark rounded-xl border border-gray-700/50 p-4">
-          <p className="text-sm text-gray-400">Admins</p>
-          <p className="text-2xl font-bold text-cyan-400 mt-1">
-            {users.filter(u => ['admin', 'super_admin'].includes(u.publicMetadata?.role || '')).length}
-          </p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="glass-dark rounded-xl border border-gray-700/50 p-4">
+            <p className="text-xs lg:text-sm text-gray-400">Total Users</p>
+            <p className="text-xl lg:text-2xl font-bold text-white mt-1">{users.length}</p>
+          </div>
+          <div className="glass-dark rounded-xl border border-gray-700/50 p-4">
+            <p className="text-xs lg:text-sm text-gray-400">Admins</p>
+            <p className="text-xl lg:text-2xl font-bold text-cyan-400 mt-1">
+              {users.filter(u => ['admin', 'super_admin'].includes(u.publicMetadata?.role || '')).length}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Users Table */}
-      <div className="glass-dark rounded-xl border border-gray-700/50 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-700/50">
-            <thead className="bg-gray-800/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  User
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Joined
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Last Sign In
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
+      <div className="glass-dark rounded-xl border border-gray-700/50">
+        <div className="relative">
+          {/* Scroll indicator hint for mobile */}
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-900 to-transparent pointer-events-none lg:hidden z-10"></div>
+          
+          <div className="overflow-x-auto max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800/50">
+            <table className="min-w-full divide-y divide-gray-700/50">
+              <thead className="bg-gray-800/50 sticky top-0 z-10">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                    User
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                    Role
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                    Joined
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                    Last Sign In
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
             <tbody className="divide-y divide-gray-700/30">
               {filteredUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-800/30 transition-colors">
@@ -192,6 +198,7 @@ export default function UsersPage() {
             <p className="text-gray-400">No users found</p>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

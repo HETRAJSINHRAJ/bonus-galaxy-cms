@@ -2,6 +2,19 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface MissionFormProps {
   mode: 'create' | 'edit';
@@ -99,200 +112,268 @@ export function MissionForm({ mode, initialData }: MissionFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl">
-      {error && (
-        <div className="mb-6 bg-red-500/10 border-l-4 border-red-500 p-4 rounded">
-          <p className="text-red-400">{error}</p>
-        </div>
-      )}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-8">
+      {/* Form Section */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="bg-red-500/10 border-l-4 border-red-500 p-4 rounded">
+            <p className="text-red-400">{error}</p>
+          </div>
+        )}
 
-      <div className="glass-dark rounded-xl border border-gray-700/50 p-6 space-y-6">
-        {/* Basic Information */}
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Title *
-              </label>
-              <input
-                type="text"
+        <Card className="bg-gray-900/50 border-gray-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">Basic Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-gray-300">Title *</Label>
+              <Input
+                id="title"
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                className="bg-gray-800/50 border-gray-700/50 text-white"
                 placeholder="Complete 5 daily check-ins"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Description *
-              </label>
-              <textarea
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-gray-300">Description *</Label>
+              <Textarea
+                id="description"
                 required
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                className="bg-gray-800/50 border-gray-700/50 text-white"
                 placeholder="Check in every day for 5 consecutive days to earn bonus points"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Icon
-                </label>
-                <input
-                  type="text"
+              <div className="space-y-2">
+                <Label htmlFor="icon" className="text-gray-300">Icon</Label>
+                <Input
+                  id="icon"
                   value={formData.icon}
                   onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                  className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                  className="bg-gray-800/50 border-gray-700/50 text-white"
                   placeholder="🎯"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Points *
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="points" className="text-gray-300">Points *</Label>
+                <Input
+                  id="points"
                   type="number"
                   required
                   min="1"
                   value={formData.points}
                   onChange={(e) => setFormData({ ...formData, points: e.target.value })}
-                  className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                  className="bg-gray-800/50 border-gray-700/50 text-white"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Type *
-                </label>
-                <select
-                  required
+              <div className="space-y-2">
+                <Label htmlFor="type" className="text-gray-300">Type *</Label>
+                <Select
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                  onValueChange={(value) => setFormData({ ...formData, type: value })}
                 >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="one_time">One Time</option>
-                  <option value="special">Special</option>
-                </select>
+                  <SelectTrigger className="bg-gray-800/50 border-gray-700/50 text-white">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="one-time">One Time</SelectItem>
+                    <SelectItem value="special">Special</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Category *
-                </label>
-                <select
-                  required
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-gray-300">Category *</Label>
+                <Select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                  onValueChange={(value) => setFormData({ ...formData, category: value })}
                 >
-                  <option value="engagement">Engagement</option>
-                  <option value="social">Social</option>
-                  <option value="achievement">Achievement</option>
-                  <option value="referral">Referral</option>
-                  <option value="purchase">Purchase</option>
-                  <option value="other">Other</option>
-                </select>
+                  <SelectTrigger className="bg-gray-800/50 border-gray-700/50 text-white">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="engagement">Engagement</SelectItem>
+                    <SelectItem value="social">Social</SelectItem>
+                    <SelectItem value="shopping">Shopping</SelectItem>
+                    <SelectItem value="partner">Partner</SelectItem>
+                    <SelectItem value="special">Special</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Schedule */}
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-4">Schedule (Optional)</h3>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Start Date
-              </label>
-              <input
+        <Card className="bg-gray-900/50 border-gray-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">Schedule (Optional)</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="startDate" className="text-gray-300">Start Date</Label>
+              <Input
+                id="startDate"
                 type="datetime-local"
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                className="bg-gray-800/50 border-gray-700/50 text-white"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                End Date
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="endDate" className="text-gray-300">End Date</Label>
+              <Input
+                id="endDate"
                 type="datetime-local"
                 value={formData.endDate}
                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                className="bg-gray-800/50 border-gray-700/50 text-white"
               />
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Settings */}
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-4">Settings</h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Max Completions (Optional)
-              </label>
-              <input
+        <Card className="bg-gray-900/50 border-gray-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="maxCompletions" className="text-gray-300">Max Completions (Optional)</Label>
+              <Input
+                id="maxCompletions"
                 type="number"
                 min="1"
                 value={formData.maxCompletions || ''}
                 onChange={(e) => setFormData({ ...formData, maxCompletions: e.target.value })}
-                className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                className="bg-gray-800/50 border-gray-700/50 text-white"
                 placeholder="Leave empty for unlimited"
               />
-              <p className="text-xs text-gray-400 mt-1">Maximum number of times this mission can be completed per user</p>
+              <p className="text-xs text-gray-400">Maximum number of times this mission can be completed per user</p>
             </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
+            <div className="flex items-center space-x-2">
+              <Switch
                 id="isActive"
                 checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="h-4 w-4 text-cyan-600 focus:ring-cyan-500 bg-gray-800 border-gray-700 rounded"
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
               />
-              <label htmlFor="isActive" className="ml-2 block text-sm text-gray-300">
+              <Label htmlFor="isActive" className="text-gray-300">
                 Mission is active
-              </label>
+              </Label>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Actions */}
-        <div className="flex gap-4 pt-4 border-t border-gray-700/50">
-          <button
+        <div className="flex gap-4">
+          <Button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-lg font-medium transition-all shadow-lg shadow-cyan-500/20 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed"
+            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white"
           >
             {loading ? 'Saving...' : mode === 'create' ? 'Create Mission' : 'Update Mission'}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="outline"
             onClick={() => router.back()}
-            className="px-6 py-2 bg-gray-800/50 border border-gray-700/50 text-gray-300 rounded-lg font-medium hover:bg-gray-700/50 transition-all"
+            className="bg-gray-800/50 border-gray-700/50 text-gray-300 hover:bg-gray-700/50"
           >
             Cancel
-          </button>
+          </Button>
         </div>
+      </form>
+
+      {/* Preview Section */}
+      <div className="lg:sticky lg:top-6 h-fit">
+        <Card className="bg-gray-900/50 border-gray-700/50">
+          <CardHeader>
+            <CardTitle className="text-white">Preview</CardTitle>
+            <CardDescription className="text-gray-400">
+              See how your mission will appear to users
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border border-gray-700/50 p-6 space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">{formData.icon || '🎯'}</div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-white">
+                    {formData.title || 'Mission Title'}
+                  </h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    {formData.description || 'Mission description will appear here'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 pt-4 border-t border-gray-700/50">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
+                  <span className="text-sm text-gray-400 capitalize">{formData.type}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-sm text-gray-400 capitalize">{formData.category}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
+                <div>
+                  <div className="text-2xl font-bold text-cyan-400">
+                    {formData.points} pts
+                  </div>
+                  <div className="text-xs text-gray-500">Reward</div>
+                </div>
+                {formData.isActive ? (
+                  <div className="px-3 py-1 bg-green-500/20 border border-green-500/50 rounded-full">
+                    <span className="text-xs font-medium text-green-400">Active</span>
+                  </div>
+                ) : (
+                  <div className="px-3 py-1 bg-gray-500/20 border border-gray-500/50 rounded-full">
+                    <span className="text-xs font-medium text-gray-400">Inactive</span>
+                  </div>
+                )}
+              </div>
+
+              {(formData.startDate || formData.endDate) && (
+                <div className="pt-4 border-t border-gray-700/50">
+                  <div className="text-xs text-gray-400 space-y-1">
+                    {formData.startDate && (
+                      <div>Starts: {new Date(formData.startDate).toLocaleString()}</div>
+                    )}
+                    {formData.endDate && (
+                      <div>Ends: {new Date(formData.endDate).toLocaleString()}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {formData.maxCompletions && (
+                <div className="pt-4 border-t border-gray-700/50">
+                  <div className="text-xs text-gray-400">
+                    Max {formData.maxCompletions} completion{formData.maxCompletions > 1 ? 's' : ''} per user
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </form>
+    </div>
   );
 }

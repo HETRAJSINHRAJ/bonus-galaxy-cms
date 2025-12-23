@@ -23,13 +23,13 @@ export default function SettingsPage() {
   };
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white">Settings</h1>
         <p className="text-gray-400 mt-2">Configure system settings and preferences</p>
       </div>
 
-      <div className="max-w-3xl space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* General Settings */}
         <div className="glass-dark rounded-xl border border-gray-700/50 p-6">
           <h3 className="text-lg font-semibold text-white mb-4">General Settings</h3>

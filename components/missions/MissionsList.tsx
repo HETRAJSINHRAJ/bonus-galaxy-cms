@@ -3,6 +3,16 @@
 import { useState, useEffect } from 'react';
 import { Role } from '@/lib/types';
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface Mission {
   id: string;
@@ -102,111 +112,127 @@ export function MissionsList({ userRole }: { userRole: Role }) {
   return (
     <div className="space-y-6">
       {/* Filters and Search */}
-      <div className="glass-dark rounded-xl border border-gray-700/50 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-2">
-            <input
-              type="text"
-              placeholder="Search missions..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white placeholder-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-            />
+      <Card className="bg-gray-900/50 border-gray-700/50">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="sm:col-span-2">
+              <Input
+                type="text"
+                placeholder="Search missions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-500"
+              />
+            </div>
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="bg-gray-800/50 border-gray-700/50 text-white">
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="one-time">One Time</SelectItem>
+                <SelectItem value="special">Special</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="bg-gray-800/50 border-gray-700/50 text-white">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="true">Active</SelectItem>
+                <SelectItem value="false">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-          >
-            <option value="all">All Types</option>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="one_time">One Time</option>
-            <option value="special">Special</option>
-          </select>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-          >
-            <option value="all">All Status</option>
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
-          </select>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="glass-dark rounded-xl border border-gray-700/50 p-6">
-          <div className="text-sm text-gray-400">Total Missions</div>
-          <div className="text-2xl font-bold text-white mt-1">{missions.length}</div>
-        </div>
-        <div className="glass-dark rounded-xl border border-gray-700/50 p-6">
-          <div className="text-sm text-gray-400">Active</div>
-          <div className="text-2xl font-bold text-green-400 mt-1">
-            {missions.filter(m => m.isActive).length}
-          </div>
-        </div>
-        <div className="glass-dark rounded-xl border border-gray-700/50 p-6">
-          <div className="text-sm text-gray-400">Inactive</div>
-          <div className="text-2xl font-bold text-gray-500 mt-1">
-            {missions.filter(m => !m.isActive).length}
-          </div>
-        </div>
-        <div className="glass-dark rounded-xl border border-gray-700/50 p-6">
-          <div className="text-sm text-gray-400">Total Completions</div>
-          <div className="text-2xl font-bold text-cyan-400 mt-1">
-            {missions.reduce((acc, m) => acc + (m._count?.userProgress || 0), 0)}
-          </div>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
+        <Card className="bg-gray-900/50 border-gray-700/50">
+          <CardContent className="pt-4 pb-4 px-4">
+            <div className="text-xs lg:text-sm text-gray-400">Total Missions</div>
+            <div className="text-xl lg:text-2xl font-bold text-white mt-1">{missions.length}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gray-900/50 border-gray-700/50">
+          <CardContent className="pt-4 pb-4 px-4">
+            <div className="text-xs lg:text-sm text-gray-400">Active</div>
+            <div className="text-xl lg:text-2xl font-bold text-green-400 mt-1">
+              {missions.filter(m => m.isActive).length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gray-900/50 border-gray-700/50">
+          <CardContent className="pt-4 pb-4 px-4">
+            <div className="text-xs lg:text-sm text-gray-400">Inactive</div>
+            <div className="text-xl lg:text-2xl font-bold text-gray-500 mt-1">
+              {missions.filter(m => !m.isActive).length}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gray-900/50 border-gray-700/50">
+          <CardContent className="pt-4 pb-4 px-4">
+            <div className="text-xs lg:text-sm text-gray-400">Total Completions</div>
+            <div className="text-xl lg:text-2xl font-bold text-cyan-400 mt-1">
+              {missions.reduce((acc, m) => acc + (m._count?.userProgress || 0), 0)}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Missions Table */}
-      <div className="glass-dark rounded-xl border border-gray-700/50 overflow-hidden">
-        {error && (
-          <div className="bg-red-500/10 border-l-4 border-red-500 p-4 rounded">
-            <p className="text-red-400">{error}</p>
-          </div>
-        )}
+      <Card className="bg-gray-900/50 border-gray-700/50">
+        <CardContent className="p-0">
+          {error && (
+            <div className="bg-red-500/10 border-l-4 border-red-500 p-4 rounded m-6">
+              <p className="text-red-400">{error}</p>
+            </div>
+          )}
 
-        {filteredMissions.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400">No missions found</p>
-            {canEdit && (
-              <Link
-                href="/dashboard/missions/create"
-                className="mt-4 inline-block px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-lg font-medium transition-all shadow-lg shadow-cyan-500/20"
-              >
-                Create First Mission
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-700/50">
-              <thead className="bg-gray-800/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Mission
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Points
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Completions
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+          {filteredMissions.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-400">No missions found</p>
+              {canEdit && (
+                <Link href="/dashboard/missions/create">
+                  <Button className="mt-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600">
+                    Create First Mission
+                  </Button>
+                </Link>
+              )}
+            </div>
+          ) : (
+          <div className="relative">
+            {/* Scroll indicator hint for mobile */}
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-900 to-transparent pointer-events-none lg:hidden z-10"></div>
+            
+            <div className="overflow-x-auto max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800/50">
+              <table className="min-w-full divide-y divide-gray-700/50">
+                <thead className="bg-gray-800/50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                      Mission
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                      Points
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                      Completions
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
               <tbody className="divide-y divide-gray-700/30">
                 {filteredMissions.map((mission) => (
                   <tr key={mission.id} className="hover:bg-gray-800/30 transition-colors">
@@ -254,12 +280,14 @@ export function MissionsList({ userRole }: { userRole: Role }) {
                         </Link>
                       )}
                       {canDelete && (
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleDelete(mission.id)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                         >
                           Delete
-                        </button>
+                        </Button>
                       )}
                     </td>
                   </tr>
@@ -267,8 +295,10 @@ export function MissionsList({ userRole }: { userRole: Role }) {
               </tbody>
             </table>
           </div>
+          </div>
         )}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
