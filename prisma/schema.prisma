@@ -57,13 +57,27 @@ model VoucherPurchase {
   userId          String   // Clerk User ID
   voucherId       String
   stripeSessionId String?
-  status          String   // "pending", "completed", "failed"
+  status          String   // "pending", "completed", "failed", "redeemed", "expired"
   amount          Float
+  
+  // Redemption fields
+  pinCode         String?  @unique // 4-digit PIN for validation
+  qrCodeData      String?  @unique // Encrypted QR code payload
+  isRedeemed      Boolean  @default(false)
+  redeemedAt      DateTime?
+  redeemedBy      String?  // Employee ID or name
+  redeemedLocation String? // Partner location name
+  expiresAt       DateTime? // Voucher expiration date
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([userId])
   @@index([stripeSessionId])
+  @@index([pinCode])
+  @@index([qrCodeData])
+  @@index([isRedeemed])
+  @@index([expiresAt])
 }
 
 model Mission {
