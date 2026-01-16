@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { QrCode, Lock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { BrowserQRCodeReader } from '@zxing/browser';
+import { Html5Qrcode } from 'html5-qrcode';
 
 const PARTNER_LOCATIONS = [
   'Vienna Store',
@@ -37,39 +37,49 @@ export default function PartnerRedeemPage() {
   const [success, setSuccess] = useState(false);
   const [qrScanned, setQrScanned] = useState(false);
   const [scanning, setScanning] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const codeReaderRef = useRef<BrowserQRCodeReader | null>(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
-  // Initialize QR scanner with ZXing
+  // Initialize QR scanner with html5-qrcode
   useEffect(() => {
-    let controlsRef: any = null;
-
     if (method === 'qr' && !qrScanned && !scanning) {
       setScanning(true);
       
-      const codeReader = new BrowserQRCodeReader();
-      codeReaderRef.current = codeReader;
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        const html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCodeRef.current = html5QrCode;
 
-      // Start scanning
-      codeReader
-        .decodeFromVideoDevice(undefined, videoRef.current!, (result, error) => {
-          if (result) {
-            setPinCode(result.getText());
+        html5QrCode.start(
+          { facingMode: "environment" }, // Use back camera on mobile
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+          },
+          (decodedText) => {
+            // QR code successfully scanned
+            console.log('QR Code scanned:', decodedText);
+            setPinCode(decodedText);
             setQrScanned(true);
             setScanning(false);
+            
+            // Stop scanning
+            html5QrCode.stop().catch(console.error);
+          },
+          (errorMessage) => {
+            // Scanning errors happen continuously, ignore them
           }
-        })
-        .then((controls) => {
-          controlsRef = controls;
-        })
-        .catch((err) => {
-          console.error('QR Scanner error:', err);
+        ).catch((err) => {
+          console.error('QR Scanner initialization error:', err);
           setScanning(false);
+          setError('Failed to access camera. Please check permissions.');
         });
+      }, 100);
 
       return () => {
-        if (controlsRef) {
-          controlsRef.stop();
+        clearTimeout(timer);
+        if (html5QrCodeRef.current) {
+          html5QrCodeRef.current.stop().catch(console.error);
         }
       };
     }
@@ -200,18 +210,9 @@ export default function PartnerRedeemPage() {
               {!qrScanned ? (
                 <div>
                   <Label className="text-white mb-2 block">Scan QR Code</Label>
-                  <div className="relative rounded-lg overflow-hidden bg-black">
-                    <video
-                      ref={videoRef}
-                      className="w-full h-auto"
-                      style={{ maxHeight: '400px' }}
-                    />
-                    <div className="absolute inset-0 border-2 border-white/20 pointer-events-none">
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-indigo-500"></div>
-                    </div>
-                  </div>
+                  <div id="qr-reader" className="rounded-lg overflow-hidden"></div>
                   <p className="text-white/60 text-xs mt-2">
-                    Position the QR code within the frame
+                    Position the QR code within the frame. Allow camera access when prompted.
                   </p>
                 </div>
               ) : (
