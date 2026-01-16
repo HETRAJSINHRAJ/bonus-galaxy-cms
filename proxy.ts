@@ -4,11 +4,13 @@ import { clerkClient } from '@clerk/nextjs/server';
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
+  '/sign-out(.*)',
   '/access-denied',
   '/setup-admin',
   '/api/webhooks(.*)',
   '/api/verify-email',
   '/api/setup-admin',
+  '/partner/redeem', // Public partner redemption portal
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
@@ -33,9 +35,13 @@ export default clerkMiddleware(async (auth, request) => {
     const publicMetadata = user.publicMetadata as { role?: string } | undefined;
     const userRole = publicMetadata?.role;
 
-    // If no valid role, redirect to access denied
+    // If no valid role, redirect to setup-admin page
     if (!userRole || !['viewer', 'editor', 'admin', 'super_admin'].includes(userRole)) {
-      return NextResponse.redirect(new URL('/access-denied', request.url));
+      // If already on setup-admin, allow access
+      if (request.nextUrl.pathname === '/setup-admin') {
+        return NextResponse.next();
+      }
+      return NextResponse.redirect(new URL('/setup-admin', request.url));
     }
 
     return NextResponse.next();
