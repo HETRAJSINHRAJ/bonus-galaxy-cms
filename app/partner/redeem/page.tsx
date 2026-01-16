@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,8 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { QrCode, Lock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
-import { useEffect, useRef } from 'react';
+import { BrowserQRCodeReader } from '@zxing/browser';
 
 const PARTNER_LOCATIONS = [
   'Vienna Store',
@@ -36,42 +35,45 @@ export default function PartnerRedeemPage() {
   const [validationResult, setValidationResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const [qrScanned, setQrScanned] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const codeReaderRef = useRef<BrowserQRCodeReader | null>(null);
 
-  // Initialize QR scanner
+  // Initialize QR scanner with ZXing
   useEffect(() => {
-    if (method === 'qr' && !qrScanned) {
-      // Add small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        const scanner = new Html5QrcodeScanner(
-          'qr-reader',
-          { fps: 10, qrbox: 250 },
-          false
-        );
-        
-        scanner.render(
-          (decodedText) => {
-            setPinCode(decodedText);
-            setQrScanned(true);
-            scanner.clear();
-          },
-          (error) => {
-            // Ignore scanning errors
-          }
-        );
-        
-        scannerRef.current = scanner;
-      }, 100);
+    let controlsRef: any = null;
+
+    if (method === 'qr' && !qrScanned && !scanning) {
+      setScanning(true);
       
+      const codeReader = new BrowserQRCodeReader();
+      codeReaderRef.current = codeReader;
+
+      // Start scanning
+      codeReader
+        .decodeFromVideoDevice(undefined, videoRef.current!, (result, error) => {
+          if (result) {
+            setPinCode(result.getText());
+            setQrScanned(true);
+            setScanning(false);
+          }
+        })
+        .then((controls) => {
+          controlsRef = controls;
+        })
+        .catch((err) => {
+          console.error('QR Scanner error:', err);
+          setScanning(false);
+        });
+
       return () => {
-        clearTimeout(timer);
-        if (scannerRef.current) {
-          scannerRef.current.clear();
+        if (controlsRef) {
+          controlsRef.stop();
         }
       };
     }
-  }, [method, qrScanned]);
+  }, [method, qrScanned, scanning]);
 
   const handleValidate = async () => {
     setError(null);
@@ -154,6 +156,7 @@ export default function PartnerRedeemPage() {
     setError(null);
     setSuccess(false);
     setQrScanned(false);
+    setScanning(false);
   };
 
   return (
@@ -197,7 +200,19 @@ export default function PartnerRedeemPage() {
               {!qrScanned ? (
                 <div>
                   <Label className="text-white mb-2 block">Scan QR Code</Label>
-                  <div id="qr-reader" className="rounded-lg overflow-hidden"></div>
+                  <div className="relative rounded-lg overflow-hidden bg-black">
+                    <video
+                      ref={videoRef}
+                      className="w-full h-auto"
+                      style={{ maxHeight: '400px' }}
+                    />
+                    <div className="absolute inset-0 border-2 border-white/20 pointer-events-none">
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-indigo-500"></div>
+                    </div>
+                  </div>
+                  <p className="text-white/60 text-xs mt-2">
+                    Position the QR code within the frame
+                  </p>
                 </div>
               ) : (
                 <div className="p-4 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
