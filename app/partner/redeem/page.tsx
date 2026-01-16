@@ -38,12 +38,13 @@ export default function PartnerRedeemPage() {
   const [success, setSuccess] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const [qrScanned, setQrScanned] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
   // Initialize QR scanner
   useEffect(() => {
     if (method === 'qr' && !qrScanned) {
       // Small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         const element = document.getElementById('qr-reader');
         if (!element) {
           console.log('QR reader element not found');
@@ -51,9 +52,17 @@ export default function PartnerRedeemPage() {
         }
 
         try {
+          // Request camera permissions first
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          stream.getTracks().forEach(track => track.stop()); // Stop the test stream
+          
           const scanner = new Html5QrcodeScanner(
             'qr-reader',
-            { fps: 10, qrbox: 250 },
+            { 
+              fps: 10, 
+              qrbox: { width: 250, height: 250 },
+              aspectRatio: 1.0,
+            },
             false
           );
           
@@ -61,16 +70,24 @@ export default function PartnerRedeemPage() {
             (decodedText) => {
               setPinCode(decodedText);
               setQrScanned(true);
+              setCameraError(null);
               scanner.clear().catch(console.error);
             },
             (error) => {
-              // Ignore scanning errors
+              // Ignore scanning errors (these happen continuously while scanning)
             }
           );
           
           scannerRef.current = scanner;
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error initializing QR scanner:', error);
+          if (error.name === 'NotAllowedError') {
+            setCameraError('Camera permission denied. Please allow camera access in your browser settings.');
+          } else if (error.name === 'NotFoundError') {
+            setCameraError('No camera found on this device.');
+          } else {
+            setCameraError('Failed to access camera. Please try again or use PIN code method.');
+          }
         }
       }, 100);
       
@@ -204,10 +221,20 @@ export default function PartnerRedeemPage() {
             </TabsContent>
 
             <TabsContent value="qr" className="space-y-4">
-              {!qrScanned ? (
+              {cameraError ? (
+                <div className="p-4 bg-red-500/20 border border-red-500/30 rounded-lg">
+                  <p className="text-red-400 text-sm mb-2">{cameraError}</p>
+                  <p className="text-white/60 text-xs">
+                    Please use the PIN Code method instead, or check your browser camera permissions.
+                  </p>
+                </div>
+              ) : !qrScanned ? (
                 <div>
                   <Label className="text-white mb-2 block">Scan QR Code</Label>
                   <div id="qr-reader" className="rounded-lg overflow-hidden"></div>
+                  <p className="text-white/60 text-xs mt-2">
+                    Allow camera access when prompted by your browser
+                  </p>
                 </div>
               ) : (
                 <div className="p-4 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
