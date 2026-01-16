@@ -39,51 +39,85 @@ export default function PartnerRedeemPage() {
   const [scanning, setScanning] = useState(false);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
-  // Initialize QR scanner with html5-qrcode
-  useEffect(() => {
-    if (method === 'qr' && !qrScanned && !scanning) {
-      setScanning(true);
-      
-      // Small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        const html5QrCode = new Html5Qrcode("qr-reader");
-        html5QrCodeRef.current = html5QrCode;
+  // Start scanner - two-step process like bonus-galaxy-new
+  const startScanner = () => {
+    setScanning(true);
+    setError(null);
+  };
 
-        html5QrCode.start(
-          { facingMode: "environment" }, // Use back camera on mobile
+  // Initialize QR scanner after DOM is ready
+  useEffect(() => {
+    if (!scanning || html5QrCodeRef.current) return;
+
+    const initScanner = async () => {
+      try {
+        const scanner = new Html5Qrcode('qr-reader');
+        html5QrCodeRef.current = scanner;
+
+        await scanner.start(
+          { facingMode: 'environment' },
           {
             fps: 10,
-            qrbox: { width: 250, height: 250 },
+            qrbox: function(viewfinderWidth, viewfinderHeight) {
+              const size = Math.min(viewfinderWidth, viewfinderHeight) * 0.7;
+              return {
+                width: Math.floor(size),
+                height: Math.floor(size)
+              };
+            },
             aspectRatio: 1.0,
           },
           (decodedText) => {
-            // QR code successfully scanned
             console.log('QR Code scanned:', decodedText);
             setPinCode(decodedText);
             setQrScanned(true);
-            setScanning(false);
-            
-            // Stop scanning
-            html5QrCode.stop().catch(console.error);
+            stopScanner();
           },
           (errorMessage) => {
-            // Scanning errors happen continuously, ignore them
+            // Silent - fires continuously during scanning
           }
-        ).catch((err) => {
-          console.error('QR Scanner initialization error:', err);
-          setScanning(false);
-          setError('Failed to access camera. Please check permissions.');
-        });
-      }, 100);
-
-      return () => {
-        clearTimeout(timer);
-        if (html5QrCodeRef.current) {
-          html5QrCodeRef.current.stop().catch(console.error);
+        );
+      } catch (err) {
+        console.error('Scanner error:', err);
+        setScanning(false);
+        
+        let errorMsg = 'Failed to access camera. Please check permissions.';
+        if (err instanceof Error) {
+          if (err.message.includes('NotAllowedError') || err.message.includes('Permission')) {
+            errorMsg = 'Camera access denied. Please allow camera access in your browser settings.';
+          } else if (err.message.includes('NotFoundError')) {
+            errorMsg = 'No camera found. Please ensure your device has a working camera.';
+          } else if (err.message.includes('NotReadableError')) {
+            errorMsg = 'Camera is already in use. Please close other apps using the camera.';
+          }
         }
-      };
+        setError(errorMsg);
+      }
+    };
+
+    const timer = setTimeout(initScanner, 100);
+    return () => clearTimeout(timer);
+  }, [scanning]);
+
+  const stopScanner = async () => {
+    if (html5QrCodeRef.current) {
+      try {
+        await html5QrCodeRef.current.stop();
+        html5QrCodeRef.current.clear();
+        html5QrCodeRef.current = null;
+      } catch (error) {
+        console.error('Error stopping scanner:', error);
+      }
     }
-  }, [method, qrScanned, scanning]);
+    setScanning(false);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopScanner();
+    };
+  }, []);
 
   const handleValidate = async () => {
     setError(null);
@@ -166,7 +200,7 @@ export default function PartnerRedeemPage() {
     setError(null);
     setSuccess(false);
     setQrScanned(false);
-    setScanning(false);
+    stopScanner();
   };
 
   return (
@@ -207,15 +241,38 @@ export default function PartnerRedeemPage() {
             </TabsContent>
 
             <TabsContent value="qr" className="space-y-4">
-              {!qrScanned ? (
-                <div>
+              {!scanning && !qrScanned && (
+                <div className="text-center space-y-4">
+                  <div className="w-20 h-20 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto">
+                    <QrCode className="h-10 w-10 text-indigo-400" />
+                  </div>
+                  <div>
+                    <Label className="text-white text-lg font-semibold">Ready to Scan</Label>
+                    <p className="text-white/60 text-sm mt-1">
+                      Click the button to activate the camera
+                    </p>
+                  </div>
+                  <Button onClick={startScanner} className="bg-indigo-500 hover:bg-indigo-600">
+                    <QrCode className="h-4 w-4 mr-2" />
+                    Start Scanner
+                  </Button>
+                </div>
+              )}
+
+              {scanning && !qrScanned && (
+                <div className="space-y-4">
                   <Label className="text-white mb-2 block">Scan QR Code</Label>
-                  <div id="qr-reader" className="rounded-lg overflow-hidden"></div>
-                  <p className="text-white/60 text-xs mt-2">
+                  <div id="qr-reader" className="rounded-lg overflow-hidden border-2 border-indigo-500/30"></div>
+                  <p className="text-white/60 text-xs text-center">
                     Position the QR code within the frame. Allow camera access when prompted.
                   </p>
+                  <Button onClick={stopScanner} variant="outline" className="w-full bg-white/5 border-white/20 text-white hover:bg-white/10">
+                    Cancel
+                  </Button>
                 </div>
-              ) : (
+              )}
+
+              {qrScanned && (
                 <div className="p-4 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
                   <p className="text-emerald-400 flex items-center gap-2">
                     <CheckCircle className="h-5 w-5" />
