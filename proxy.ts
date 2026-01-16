@@ -5,8 +5,10 @@ import { clerkClient } from '@clerk/nextjs/server';
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/access-denied',
+  '/setup-admin',
   '/api/webhooks(.*)',
   '/api/verify-email',
+  '/api/setup-admin',
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

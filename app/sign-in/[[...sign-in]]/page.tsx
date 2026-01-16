@@ -23,10 +23,11 @@ export default function SignInPage() {
 
   // Redirect if already signed in
   useEffect(() => {
-    if (isSignedIn) {
+    if (isLoaded && isSignedIn) {
+      console.log('Already signed in, redirecting to dashboard...');
       router.push('/dashboard');
     }
-  }, [isSignedIn, router]);
+  }, [isLoaded, isSignedIn, router]);
 
   const handleEmailSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -111,6 +112,30 @@ export default function SignInPage() {
     setError('');
     setUserInfo(null);
   };
+
+  // Show loading while checking auth status
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show redirecting message if already signed in
+  if (isSignedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Already signed in. Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
