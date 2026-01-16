@@ -60,99 +60,99 @@ export default async function RedemptionsPage() {
     .slice(0, 5);
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Voucher Redemptions</h1>
-          <p className="text-white/60">Overview of all redeemed vouchers</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Voucher Redemptions</h1>
+          <p className="text-sm md:text-base text-white/60">Overview of all redeemed vouchers</p>
         </div>
-        <Button className="bg-indigo-500 hover:bg-indigo-600">
+        <Button className="bg-indigo-500 hover:bg-indigo-600 w-full sm:w-auto">
           <Download className="h-4 w-4 mr-2" />
           CSV Export
         </Button>
       </div>
 
       {/* Analytics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 bg-white/5 border-white/10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <Card className="p-4 md:p-6 bg-white/5 border-white/10">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/60 text-sm mb-1">Total Redemptions</p>
-              <p className="text-3xl font-bold text-white">{totalRedemptions}</p>
+              <p className="text-white/60 text-xs md:text-sm mb-1">Total Redemptions</p>
+              <p className="text-2xl md:text-3xl font-bold text-white">{totalRedemptions}</p>
             </div>
-            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-indigo-400" />
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-indigo-400" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-white/5 border-white/10">
+        <Card className="p-4 md:p-6 bg-white/5 border-white/10">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/60 text-sm mb-1">Total Value</p>
-              <p className="text-3xl font-bold text-white">€{totalValue.toFixed(2)}</p>
+              <p className="text-white/60 text-xs md:text-sm mb-1">Total Value</p>
+              <p className="text-2xl md:text-3xl font-bold text-white">€{totalValue.toFixed(2)}</p>
             </div>
-            <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-emerald-400" />
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-emerald-400" />
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-white/5 border-white/10">
+        <Card className="p-4 md:p-6 bg-white/5 border-white/10 sm:col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/60 text-sm mb-1">Locations</p>
-              <p className="text-3xl font-bold text-white">{Object.keys(byLocation).length}</p>
+              <p className="text-white/60 text-xs md:text-sm mb-1">Locations</p>
+              <p className="text-2xl md:text-3xl font-bold text-white">{Object.keys(byLocation).length}</p>
             </div>
-            <div className="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
-              <MapPin className="h-6 w-6 text-amber-400" />
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
+              <MapPin className="h-5 w-5 md:h-6 md:w-6 text-amber-400" />
             </div>
           </div>
         </Card>
       </div>
 
       {/* Top Performers */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6 bg-white/5 border-white/10">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-indigo-400" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <Card className="p-4 md:p-6 bg-white/5 border-white/10">
+          <h3 className="text-base md:text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <MapPin className="h-4 w-4 md:h-5 md:w-5 text-indigo-400" />
             Top Locations
           </h3>
           <div className="space-y-3">
             {topLocations.length > 0 ? (
               topLocations.map(([location, count]) => (
-                <div key={location} className="flex items-center justify-between">
-                  <span className="text-white/80">{location}</span>
-                  <Badge className="bg-indigo-500/20 text-indigo-400 border-indigo-500/30">
-                    {count} redemptions
+                <div key={location} className="flex items-center justify-between gap-2">
+                  <span className="text-sm md:text-base text-white/80 truncate">{location}</span>
+                  <Badge className="bg-indigo-500/20 text-indigo-400 border-indigo-500/30 text-xs whitespace-nowrap">
+                    {count} redemption{count !== 1 ? 's' : ''}
                   </Badge>
                 </div>
               ))
             ) : (
-              <div className="text-white/40 text-sm py-4 text-center">
+              <div className="text-white/40 text-xs md:text-sm py-4 text-center">
                 No redemptions yet
               </div>
             )}
           </div>
         </Card>
 
-        <Card className="p-6 bg-white/5 border-white/10">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Users className="h-5 w-5 text-emerald-400" />
+        <Card className="p-4 md:p-6 bg-white/5 border-white/10">
+          <h3 className="text-base md:text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <Users className="h-4 w-4 md:h-5 md:w-5 text-emerald-400" />
             Top Employees
           </h3>
           <div className="space-y-3">
             {topEmployees.length > 0 ? (
               topEmployees.map(([employee, count]) => (
-                <div key={employee} className="flex items-center justify-between">
-                  <span className="text-white/80">{employee}</span>
-                  <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                    {count} redemptions
+                <div key={employee} className="flex items-center justify-between gap-2">
+                  <span className="text-sm md:text-base text-white/80 truncate">{employee}</span>
+                  <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs whitespace-nowrap">
+                    {count} redemption{count !== 1 ? 's' : ''}
                   </Badge>
                 </div>
               ))
             ) : (
-              <div className="text-white/40 text-sm py-4 text-center">
+              <div className="text-white/40 text-xs md:text-sm py-4 text-center">
                 No redemptions yet
               </div>
             )}
@@ -161,37 +161,80 @@ export default async function RedemptionsPage() {
       </div>
 
       {/* Redemptions Table */}
-      <Card className="p-6 bg-white/5 border-white/10">
-        <h3 className="text-lg font-semibold text-white mb-4">All Redemptions</h3>
+      <Card className="p-4 md:p-6 bg-white/5 border-white/10">
+        <h3 className="text-base md:text-lg font-semibold text-white mb-4">All Redemptions</h3>
         {redemptions.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left text-white/60 text-sm font-medium pb-3">PIN</th>
-                  <th className="text-left text-white/60 text-sm font-medium pb-3">Bundle</th>
-                  <th className="text-left text-white/60 text-sm font-medium pb-3">Value</th>
-                  <th className="text-left text-white/60 text-sm font-medium pb-3">Redeemed At</th>
-                  <th className="text-left text-white/60 text-sm font-medium pb-3">Employee</th>
-                  <th className="text-left text-white/60 text-sm font-medium pb-3">Location</th>
-                </tr>
-              </thead>
-              <tbody>
-                {redemptions.map((redemption) => (
-                  <tr key={redemption.id} className="border-b border-white/5">
-                    <td className="py-3 text-white/80 font-mono">{redemption.pinCode}</td>
-                    <td className="py-3 text-white/80">{redemption.voucherId}</td>
-                    <td className="py-3 text-white/80">€{redemption.amount.toFixed(2)}</td>
-                    <td className="py-3 text-white/80">
-                      {redemption.redeemedAt && format(new Date(redemption.redeemedAt), 'MMM dd, yyyy HH:mm')}
-                    </td>
-                    <td className="py-3 text-white/80">{redemption.redeemedBy}</td>
-                    <td className="py-3 text-white/80">{redemption.redeemedLocation}</td>
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left text-white/60 text-sm font-medium pb-3">PIN</th>
+                    <th className="text-left text-white/60 text-sm font-medium pb-3">Bundle</th>
+                    <th className="text-left text-white/60 text-sm font-medium pb-3">Value</th>
+                    <th className="text-left text-white/60 text-sm font-medium pb-3">Redeemed At</th>
+                    <th className="text-left text-white/60 text-sm font-medium pb-3">Employee</th>
+                    <th className="text-left text-white/60 text-sm font-medium pb-3">Location</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {redemptions.map((redemption) => (
+                    <tr key={redemption.id} className="border-b border-white/5">
+                      <td className="py-3 text-white/80 font-mono text-sm">{redemption.pinCode}</td>
+                      <td className="py-3 text-white/80 text-sm">{redemption.voucherId}</td>
+                      <td className="py-3 text-white/80 text-sm">€{redemption.amount.toFixed(2)}</td>
+                      <td className="py-3 text-white/80 text-sm">
+                        {redemption.redeemedAt && format(new Date(redemption.redeemedAt), 'MMM dd, yyyy HH:mm')}
+                      </td>
+                      <td className="py-3 text-white/80 text-sm">{redemption.redeemedBy}</td>
+                      <td className="py-3 text-white/80 text-sm">{redemption.redeemedLocation}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+              {redemptions.map((redemption) => (
+                <Card key={redemption.id} className="p-4 bg-white/5 border-white/10">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-white/60">PIN</span>
+                      <span className="text-sm text-white/80 font-mono">{redemption.pinCode}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-white/60">Value</span>
+                      <span className="text-sm font-semibold text-emerald-400">€{redemption.amount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-white/60">Bundle</span>
+                      <span className="text-sm text-white/80 truncate max-w-[60%] text-right">{redemption.voucherId}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-white/60">Redeemed At</span>
+                      <span className="text-sm text-white/80">
+                        {redemption.redeemedAt && format(new Date(redemption.redeemedAt), 'MMM dd, HH:mm')}
+                      </span>
+                    </div>
+                    {redemption.redeemedBy && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-white/60">Employee</span>
+                        <span className="text-sm text-white/80 truncate max-w-[60%] text-right">{redemption.redeemedBy}</span>
+                      </div>
+                    )}
+                    {redemption.redeemedLocation && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-white/60">Location</span>
+                        <span className="text-sm text-white/80 truncate max-w-[60%] text-right">{redemption.redeemedLocation}</span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="text-center py-12">
             <AlertCircle className="h-12 w-12 text-white/20 mx-auto mb-4" />

@@ -24,7 +24,12 @@ const PARTNER_LOCATIONS = [
 ];
 
 // API base URL - points to bonus-galaxy-new
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://bonus-galaxy-demo.vercel.app/api';
+// In development, use localhost:3000 (bonus-galaxy-new)
+// In production, use the deployed API
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+    ? 'http://localhost:3000/api' 
+    : 'https://bonus-galaxy-demo.vercel.app/api');
 
 export default function PartnerRedeemPage() {
   const [method, setMethod] = useState<'pin' | 'qr'>('pin');
@@ -132,6 +137,8 @@ export default function PartnerRedeemPage() {
     setLoading(true);
     
     try {
+      console.log('Validating voucher at:', `${API_BASE_URL}/vouchers/validate`);
+      
       const response = await fetch(`${API_BASE_URL}/vouchers/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -143,7 +150,28 @@ export default function PartnerRedeemPage() {
         })
       });
       
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Error response:', text);
+        let errorMessage = 'Validation failed';
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          if (response.status === 404) {
+            errorMessage = 'API endpoint not found. Make sure bonus-galaxy-new is running on port 3000.';
+          } else {
+            errorMessage = `Server error: ${response.status}`;
+          }
+        }
+        setError(errorMessage);
+        return;
+      }
+      
       const data = await response.json();
+      console.log('Validation response:', data);
       
       if (data.valid) {
         setValidationResult(data);
@@ -151,7 +179,8 @@ export default function PartnerRedeemPage() {
         setError(data.error || 'Invalid voucher');
       }
     } catch (err) {
-      setError('Validation failed. Please try again.');
+      console.error('Validation error:', err);
+      setError('Connection failed. Make sure bonus-galaxy-new is running on http://localhost:3000');
     } finally {
       setLoading(false);
     }
@@ -175,6 +204,19 @@ export default function PartnerRedeemPage() {
         })
       });
       
+      if (!response.ok) {
+        const text = await response.text();
+        let errorMessage = 'Redemption failed';
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = `Server error: ${response.status}`;
+        }
+        setError(errorMessage);
+        return;
+      }
+      
       const data = await response.json();
       
       if (data.success) {
@@ -186,7 +228,8 @@ export default function PartnerRedeemPage() {
         setError(data.error || 'Redemption failed');
       }
     } catch (err) {
-      setError('Redemption failed. Please try again.');
+      console.error('Redemption error:', err);
+      setError('Redemption failed. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -204,29 +247,36 @@ export default function PartnerRedeemPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
-      <div className="container mx-auto max-w-2xl py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Partner Voucher Redemption</h1>
-          <p className="text-white/60">Bonus Galaxy Redemption System</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 md:p-6 lg:p-8">
+      <div className="container mx-auto max-w-2xl py-4 md:py-8">
+        <div className="text-center mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Partner Voucher Redemption</h1>
+          <p className="text-sm md:text-base text-white/60">Bonus Galaxy Redemption System</p>
+          {typeof window !== 'undefined' && (
+            <p className="text-xs text-white/40 mt-2">
+              API: {API_BASE_URL}
+            </p>
+          )}
         </div>
 
-        <Card className="p-6 bg-white/5 border-white/10">
+        <Card className="p-4 md:p-6 bg-white/5 border-white/10">
           <Tabs value={method} onValueChange={(v) => setMethod(v as 'pin' | 'qr')}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="pin" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                PIN Code
+            <TabsList className="grid w-full grid-cols-2 mb-4 md:mb-6">
+              <TabsTrigger value="pin" className="flex items-center gap-2 text-sm md:text-base">
+                <Lock className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">PIN Code</span>
+                <span className="sm:hidden">PIN</span>
               </TabsTrigger>
-              <TabsTrigger value="qr" className="flex items-center gap-2">
-                <QrCode className="h-4 w-4" />
-                QR Code
+              <TabsTrigger value="qr" className="flex items-center gap-2 text-sm md:text-base">
+                <QrCode className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">QR Code</span>
+                <span className="sm:hidden">QR</span>
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="pin" className="space-y-4">
               <div>
-                <Label htmlFor="pin" className="text-white">4-Digit PIN Code</Label>
+                <Label htmlFor="pin" className="text-white text-sm md:text-base">4-Digit PIN Code</Label>
                 <Input
                   id="pin"
                   type="text"
@@ -234,7 +284,7 @@ export default function PartnerRedeemPage() {
                   placeholder="1234"
                   value={pinCode}
                   onChange={(e) => setPinCode(e.target.value.replace(/\D/g, ''))}
-                  className="mt-2 bg-white/10 border-white/20 text-white text-2xl text-center tracking-widest"
+                  className="mt-2 bg-white/10 border-white/20 text-white text-xl md:text-2xl text-center tracking-widest"
                   disabled={!!validationResult}
                 />
               </div>
@@ -283,24 +333,24 @@ export default function PartnerRedeemPage() {
             </TabsContent>
           </Tabs>
 
-          <div className="space-y-4 mt-6">
+          <div className="space-y-4 mt-4 md:mt-6">
             <div>
-              <Label htmlFor="employee" className="text-white">Employee ID</Label>
+              <Label htmlFor="employee" className="text-white text-sm md:text-base">Employee ID</Label>
               <Input
                 id="employee"
                 type="text"
                 placeholder="emp_123"
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
-                className="mt-2 bg-white/10 border-white/20 text-white"
+                className="mt-2 bg-white/10 border-white/20 text-white text-sm md:text-base"
                 disabled={!!validationResult}
               />
             </div>
 
             <div>
-              <Label htmlFor="location" className="text-white">Location</Label>
+              <Label htmlFor="location" className="text-white text-sm md:text-base">Location</Label>
               <Select value={location} onValueChange={setLocation} disabled={!!validationResult}>
-                <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white text-sm md:text-base">
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
                 <SelectContent>
@@ -344,12 +394,12 @@ export default function PartnerRedeemPage() {
             </div>
           )}
 
-          <div className="mt-6 flex gap-3">
+          <div className="mt-4 md:mt-6 flex flex-col sm:flex-row gap-3">
             {!validationResult && !success && (
               <Button
                 onClick={handleValidate}
                 disabled={loading || !pinCode || !employeeId || !location}
-                className="flex-1 bg-indigo-500 hover:bg-indigo-600"
+                className="flex-1 bg-indigo-500 hover:bg-indigo-600 text-sm md:text-base"
               >
                 {loading ? (
                   <>
@@ -366,7 +416,7 @@ export default function PartnerRedeemPage() {
               <Button
                 onClick={handleRedeem}
                 disabled={loading}
-                className="flex-1 bg-emerald-500 hover:bg-emerald-600"
+                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-sm md:text-base"
               >
                 {loading ? (
                   <>
@@ -383,7 +433,7 @@ export default function PartnerRedeemPage() {
               <Button
                 onClick={resetForm}
                 variant="outline"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-sm md:text-base sm:flex-initial"
               >
                 Reset
               </Button>
