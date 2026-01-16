@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Search,
   Receipt,
+  Scan,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -73,6 +74,12 @@ export function AppSidebar({ user, userRole, onSignOut, onNavigate }: AppSidebar
       icon: Plus,
       variant: 'primary',
       roles: [Role.EDITOR, Role.ADMIN, Role.SUPER_ADMIN],
+    },
+    {
+      title: 'Partner Redeem',
+      href: '/partner/redeem',
+      icon: Scan,
+      roles: [Role.ADMIN, Role.SUPER_ADMIN],
     },
     {
       title: 'Redemptions',
