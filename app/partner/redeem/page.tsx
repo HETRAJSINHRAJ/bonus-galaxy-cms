@@ -42,27 +42,43 @@ export default function PartnerRedeemPage() {
   // Initialize QR scanner
   useEffect(() => {
     if (method === 'qr' && !qrScanned) {
-      const scanner = new Html5QrcodeScanner(
-        'qr-reader',
-        { fps: 10, qrbox: 250 },
-        false
-      );
-      
-      scanner.render(
-        (decodedText) => {
-          setPinCode(decodedText);
-          setQrScanned(true);
-          scanner.clear();
-        },
-        (error) => {
-          // Ignore scanning errors
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        const element = document.getElementById('qr-reader');
+        if (!element) {
+          console.log('QR reader element not found');
+          return;
         }
-      );
-      
-      scannerRef.current = scanner;
+
+        try {
+          const scanner = new Html5QrcodeScanner(
+            'qr-reader',
+            { fps: 10, qrbox: 250 },
+            false
+          );
+          
+          scanner.render(
+            (decodedText) => {
+              setPinCode(decodedText);
+              setQrScanned(true);
+              scanner.clear().catch(console.error);
+            },
+            (error) => {
+              // Ignore scanning errors
+            }
+          );
+          
+          scannerRef.current = scanner;
+        } catch (error) {
+          console.error('Error initializing QR scanner:', error);
+        }
+      }, 100);
       
       return () => {
-        scanner.clear();
+        clearTimeout(timer);
+        if (scannerRef.current) {
+          scannerRef.current.clear().catch(console.error);
+        }
       };
     }
   }, [method, qrScanned]);
