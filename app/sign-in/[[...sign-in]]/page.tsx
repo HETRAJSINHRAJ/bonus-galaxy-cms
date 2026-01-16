@@ -1,11 +1,13 @@
 'use client';
 
-import { useSignIn } from '@clerk/nextjs';
+import { useSignIn, useUser, useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 
 export default function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
   const router = useRouter();
   const [emailAddress, setEmailAddress] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +20,13 @@ export default function SignInPage() {
     imageUrl?: string; 
     role?: string;
   } | null>(null);
+
+  // Redirect if already signed in
+  useEffect(() => {
+    if (isSignedIn) {
+      router.push('/dashboard');
+    }
+  }, [isSignedIn, router]);
 
   const handleEmailSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -78,6 +87,13 @@ export default function SignInPage() {
     } catch (err: any) {
       console.error('Sign-in error:', err);
       const errorMessage = err.errors?.[0]?.message || err.errors?.[0]?.longMessage;
+      
+      // Check if already signed in
+      if (errorMessage?.includes('already signed in')) {
+        setError('You are already signed in. Redirecting to dashboard...');
+        setTimeout(() => router.push('/dashboard'), 1500);
+        return;
+      }
       
       if (errorMessage?.includes('password')) {
         setError('Incorrect password. Please try again.');
