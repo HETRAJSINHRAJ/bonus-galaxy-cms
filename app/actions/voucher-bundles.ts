@@ -32,17 +32,25 @@ export async function createVoucherBundle(data: {
   displayOrder: number;
 }) {
   try {
+    console.log('Creating bundle with data:', {
+      ...data,
+      images: `${data.images?.length || 0} images (${data.images?.reduce((sum, img) => sum + img.length, 0)} bytes)`,
+    });
+
     const bundle = await prisma.voucherBundle.create({
       data: {
         ...data,
         isActive: true,
       },
     });
+    
     revalidatePath('/shops');
+    console.log('Bundle created successfully:', bundle.id);
     return { success: true, bundle };
   } catch (error) {
     console.error('Error creating bundle:', error);
-    return { success: false, error: 'Failed to create bundle' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create bundle';
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -63,15 +71,23 @@ export async function updateVoucherBundle(
   }
 ) {
   try {
+    console.log('Updating bundle:', id, {
+      ...data,
+      images: `${data.images?.length || 0} images (${data.images?.reduce((sum, img) => sum + img.length, 0)} bytes)`,
+    });
+
     const bundle = await prisma.voucherBundle.update({
       where: { id },
       data,
     });
+    
     revalidatePath('/shops');
+    console.log('Bundle updated successfully:', bundle.id);
     return { success: true, bundle };
   } catch (error) {
     console.error('Error updating bundle:', error);
-    return { success: false, error: 'Failed to update bundle' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update bundle';
+    return { success: false, error: errorMessage };
   }
 }
 

@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb', // Increase limit for base64 images
+    },
+  },
 };
 
 export default nextConfig;

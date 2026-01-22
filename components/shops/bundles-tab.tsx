@@ -191,6 +191,18 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
       
       const allImages = [...uploadedImages, ...urlImages];
 
+      // Log image sizes for debugging
+      const totalImageSize = allImages.reduce((sum, img) => sum + img.length, 0);
+      console.log(`Total images: ${allImages.length}, Total size: ${(totalImageSize / 1024 / 1024).toFixed(2)}MB`);
+
+      // Warn if images are very large
+      if (totalImageSize > 8 * 1024 * 1024) { // 8MB
+        if (!confirm(`Warning: Images are very large (${(totalImageSize / 1024 / 1024).toFixed(2)}MB). This may cause issues. Continue?`)) {
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const payload = {
         name: formData.name,
         description: formData.description,
@@ -205,20 +217,24 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
         displayOrder: parseInt(formData.displayOrder),
       };
 
+      console.log('Submitting bundle...', editingBundle ? 'UPDATE' : 'CREATE');
+
       const result = editingBundle
         ? await updateVoucherBundle(editingBundle.id, payload)
         : await createVoucherBundle(payload);
 
       if (result.success) {
+        console.log('Bundle saved successfully');
         await fetchBundles();
         setDialogOpen(false);
         resetForm();
       } else {
-        alert(result.error || 'Failed to save bundle');
+        console.error('Failed to save bundle:', result.error);
+        alert(`Failed to save bundle: ${result.error}`);
       }
     } catch (error) {
       console.error('Error saving bundle:', error);
-      alert(error instanceof Error ? error.message : 'Failed to save bundle');
+      alert(error instanceof Error ? error.message : 'Failed to save bundle. Check console for details.');
     } finally {
       setSubmitting(false);
     }
