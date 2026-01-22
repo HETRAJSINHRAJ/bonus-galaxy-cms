@@ -229,6 +229,9 @@ model VoucherBundle {
   // Features
   features        String[] // Array of feature descriptions
   
+  // Images
+  images          String[] @default([]) // Array of image URLs for carousel
+  
   // Display
   isPopular       Boolean  @default(false)
   displayOrder    Int      @default(0)

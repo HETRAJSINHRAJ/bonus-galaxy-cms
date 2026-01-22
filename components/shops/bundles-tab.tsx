@@ -29,6 +29,7 @@ interface VoucherBundle {
   voucherCount: number;
   paymentMethod: string;
   features: string[];
+  images: string[];
   isPopular: boolean;
   displayOrder: number;
   isActive: boolean;
@@ -57,6 +58,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
     voucherCount: '10',
     paymentMethod: 'cash',
     features: '',
+    images: '',
     isPopular: false,
     displayOrder: '0',
   });
@@ -97,6 +99,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
       voucherCount: bundle.voucherCount.toString(),
       paymentMethod: bundle.paymentMethod,
       features: bundle.features.join('\n'),
+      images: (bundle.images || []).join('\n'),
       isPopular: bundle.isPopular,
       displayOrder: bundle.displayOrder.toString(),
     });
@@ -119,6 +122,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
       voucherCount: '10',
       paymentMethod: 'cash',
       features: '',
+      images: '',
       isPopular: false,
       displayOrder: '0',
     });
@@ -134,6 +138,11 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
         .map(f => f.trim())
         .filter(f => f.length > 0);
 
+      const imagesArray = formData.images
+        .split('\n')
+        .map(i => i.trim())
+        .filter(i => i.length > 0);
+
       const payload = {
         name: formData.name,
         description: formData.description,
@@ -143,6 +152,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
         voucherCount: parseInt(formData.voucherCount),
         paymentMethod: formData.paymentMethod,
         features: featuresArray,
+        images: imagesArray,
         isPopular: formData.isPopular,
         displayOrder: parseInt(formData.displayOrder),
       };
@@ -500,6 +510,21 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
                   placeholder="0"
                   className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
                 />
+              </div>
+
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="images" className="text-white">
+                  Image URLs (one per line)
+                </Label>
+                <Textarea
+                  id="images"
+                  value={formData.images}
+                  onChange={(e) => setFormData({ ...formData, images: e.target.value })}
+                  placeholder="https://example.com/hotel-room-1.jpg&#10;https://example.com/hotel-room-2.jpg&#10;https://example.com/hotel-pool.jpg"
+                  rows={4}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
+                />
+                <p className="text-xs text-white/50">Enter direct image URLs. These will be shown as a carousel on the voucher card.</p>
               </div>
 
               <div className="col-span-2 space-y-2">

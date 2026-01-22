@@ -27,6 +27,7 @@ export async function createVoucherBundle(data: {
   voucherCount: number;
   paymentMethod: string;
   features: string[];
+  images: string[];
   isPopular: boolean;
   displayOrder: number;
 }) {
@@ -56,6 +57,7 @@ export async function updateVoucherBundle(
     voucherCount: number;
     paymentMethod: string;
     features: string[];
+    images: string[];
     isPopular: boolean;
     displayOrder: number;
   }
