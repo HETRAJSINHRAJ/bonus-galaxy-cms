@@ -11,6 +11,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Package, Edit, Trash2, Star, Euro, Coins, Loader2 } from 'lucide-react';
+import { 
+  getVoucherBundles, 
+  createVoucherBundle, 
+  updateVoucherBundle, 
+  deleteVoucherBundle, 
+  toggleVoucherBundleActive 
+} from '@/app/actions/voucher-bundles';
 
 interface VoucherBundle {
   id: string;
@@ -60,42 +67,19 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
 
   const fetchBundles = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      console.log('Environment check:', {
-        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-        fullUrl: `${apiUrl}/voucher-bundles`,
-        allEnvVars: Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC'))
-      });
-      console.log('Fetching bundles from:', `${apiUrl}/voucher-bundles`);
-      
-      const response = await fetch(`${apiUrl}/voucher-bundles`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      console.log('Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('Bundles data:', data);
-      setBundles(data.bundles || []);
+      setLoading(true);
       setError(null);
+      
+      const result = await getVoucherBundles();
+      
+      if (result.success && result.bundles) {
+        setBundles(result.bundles as any);
+      } else {
+        setError(result.error || 'Failed to fetch bundles');
+      }
     } catch (error) {
       console.error('Error fetching bundles:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch bundles';
-      
-      // Check if it's a network error
-      if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
-        setError('Cannot connect to API. Make sure bonus-galaxy-new is running on port 3000.');
-      } else {
-        setError(errorMessage);
-      }
+      setError('Failed to fetch bundles');
       setBundles([]);
     } finally {
       setLoading(false);
@@ -121,6 +105,11 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
 
   const handleCreate = () => {
     setEditingBundle(null);
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const resetForm = () => {
     setFormData({
       name: '',
       description: '',
@@ -133,7 +122,6 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
       isPopular: false,
       displayOrder: '0',
     });
-    setDialogOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,17 +129,10 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
     setSubmitting(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const featuresArray = formData.features
         .split('\n')
         .map(f => f.trim())
         .filter(f => f.length > 0);
-
-      const url = editingBundle
-        ? `${apiUrl}/voucher-bundles/${editingBundle.id}`
-        : `${apiUrl}/voucher-bundles`;
-      
-      const method = editingBundle ? 'PUT' : 'POST';
 
       const payload = {
         name: formData.name,
@@ -166,59 +147,17 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
         displayOrder: parseInt(formData.displayOrder),
       };
 
-      console.log('Sending payload:', payload);
-      console.log('To URL:', url, 'Method:', method);
+      const result = editingBundle
+        ? await updateVoucherBundle(editingBundle.id, payload)
+        : await createVoucherBundle(payload);
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      console.log('Response received:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries()),
-        url,
-        method
-      });
-
-      if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        let errorMessage = 'Failed to save bundle';
-        
-        try {
-          if (contentType && contentType.includes('application/json')) {
-            const data = await response.json();
-            console.log('Error response data:', data);
-            errorMessage = data.error || data.details || errorMessage;
-          } else {
-            const text = await response.text();
-            console.log('Error response text:', text.substring(0, 500));
-            errorMessage = text ? `Server error: ${response.status}` : `HTTP ${response.status}: ${response.statusText}`;
-          }
-        } catch (parseError) {
-          console.error('Failed to parse error response:', parseError);
-          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-        }
-        
-        console.error('API Error:', {
-          status: response.status,
-          statusText: response.statusText,
-          message: errorMessage,
-          url,
-          method
-        });
-        
-        throw new Error(errorMessage);
+      if (result.success) {
+        await fetchBundles();
+        setDialogOpen(false);
+        resetForm();
+      } else {
+        alert(result.error || 'Failed to save bundle');
       }
-
-      console.log('Bundle saved successfully');
-      setDialogOpen(false);
-      fetchBundles();
     } catch (error) {
       console.error('Error saving bundle:', error);
       alert(error instanceof Error ? error.message : 'Failed to save bundle');
@@ -231,16 +170,13 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
     if (!confirm('Are you sure you want to delete this bundle?')) return;
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/voucher-bundles/${bundleId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete bundle');
+      const result = await deleteVoucherBundle(bundleId);
+      
+      if (result.success) {
+        await fetchBundles();
+      } else {
+        alert(result.error || 'Failed to delete bundle');
       }
-
-      fetchBundles();
     } catch (error) {
       console.error('Error deleting bundle:', error);
       alert(error instanceof Error ? error.message : 'Failed to delete bundle');
@@ -249,20 +185,13 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
 
   const handleToggleActive = async (bundleId: string, isActive: boolean) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/voucher-bundles/${bundleId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ isActive: !isActive }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update bundle');
+      const result = await toggleVoucherBundleActive(bundleId, !isActive);
+      
+      if (result.success) {
+        await fetchBundles();
+      } else {
+        alert(result.error || 'Failed to update bundle');
       }
-
-      fetchBundles();
     } catch (error) {
       console.error('Error updating bundle:', error);
       alert(error instanceof Error ? error.message : 'Failed to update bundle');
@@ -295,23 +224,9 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
       {error && (
         <Card className="bg-red-500/10 border-red-500/30">
           <CardContent className="py-12 text-center">
-            <div className="text-red-400 mb-4">⚠️ Connection Error</div>
+            <div className="text-red-400 mb-4">⚠️ Database Error</div>
             <h3 className="text-xl font-semibold text-white mb-2">Failed to Load Bundles</h3>
             <p className="text-white/60 mb-4">{error}</p>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4 max-w-2xl mx-auto text-left">
-              <p className="text-sm text-white/70 mb-2">
-                <strong>API URL:</strong> <code className="text-cyan-400">{process.env.NEXT_PUBLIC_API_URL || 'Not configured'}</code>
-              </p>
-              <p className="text-sm text-white/70 mb-2">
-                <strong>Make sure:</strong>
-              </p>
-              <ul className="text-sm text-white/60 list-disc list-inside space-y-1">
-                <li>NEXT_PUBLIC_API_URL is set correctly in .env (should point to bonus-galaxy-demo.vercel.app)</li>
-                <li>The bonus-galaxy-new app is deployed and running</li>
-                <li>The /api/voucher-bundles endpoint is accessible</li>
-                <li>CORS is configured to allow requests from mission-cms</li>
-              </ul>
-            </div>
             <Button onClick={fetchBundles} className="mt-6 bg-cyan-500 hover:bg-cyan-600">
               Try Again
             </Button>
