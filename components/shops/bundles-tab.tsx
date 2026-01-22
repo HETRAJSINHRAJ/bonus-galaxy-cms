@@ -61,6 +61,11 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
   const fetchBundles = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      console.log('Environment check:', {
+        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+        fullUrl: `${apiUrl}/voucher-bundles`,
+        allEnvVars: Object.keys(process.env).filter(k => k.startsWith('NEXT_PUBLIC'))
+      });
       console.log('Fetching bundles from:', `${apiUrl}/voucher-bundles`);
       
       const response = await fetch(`${apiUrl}/voucher-bundles`, {
