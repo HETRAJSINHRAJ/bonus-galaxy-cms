@@ -55,11 +55,24 @@ export default function ShopDetailsPage() {
 
   const fetchShop = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops/${shopId}`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+      console.log('Fetching shop from:', `${apiUrl}/shops/${shopId}`);
+      
+      const response = await fetch(`${apiUrl}/shops/${shopId}`);
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('Failed to fetch shop:', response.status, response.statusText);
+        setShop(null);
+        return;
+      }
+      
       const data = await response.json();
+      console.log('Shop data:', data);
       setShop(data.shop);
     } catch (error) {
       console.error('Error fetching shop:', error);
+      setShop(null);
     } finally {
       setLoading(false);
     }

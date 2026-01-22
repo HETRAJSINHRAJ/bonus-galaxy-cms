@@ -27,6 +27,7 @@ export default function ShopsPage() {
   const { user } = useUser();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchShops();
@@ -34,11 +35,27 @@ export default function ShopsPage() {
 
   const fetchShops = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shops`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+      console.log('Fetching shops from:', `${apiUrl}/shops`);
+      
+      const response = await fetch(`${apiUrl}/shops`);
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('Failed to fetch shops:', response.status, response.statusText);
+        setError(`Failed to fetch shops: ${response.status} ${response.statusText}`);
+        setShops([]);
+        return;
+      }
+      
       const data = await response.json();
+      console.log('Shops data:', data);
       setShops(data.shops || []);
+      setError(null);
     } catch (error) {
       console.error('Error fetching shops:', error);
+      setError(error instanceof Error ? error.message : 'Failed to connect to API');
+      setShops([]);
     } finally {
       setLoading(false);
     }
@@ -69,6 +86,30 @@ export default function ShopsPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
             <p className="text-white/60 mt-4">Loading shops...</p>
           </div>
+        ) : error ? (
+          <Card className="bg-red-500/10 border-red-500/30">
+            <CardContent className="py-12 text-center">
+              <div className="text-red-400 mb-4">⚠️ Connection Error</div>
+              <h2 className="text-xl font-semibold text-white mb-2">Failed to Load Shops</h2>
+              <p className="text-white/60 mb-4">{error}</p>
+              <div className="bg-white/5 border border-white/10 rounded-lg p-4 max-w-2xl mx-auto text-left">
+                <p className="text-sm text-white/70 mb-2">
+                  <strong>API URL:</strong> <code className="text-cyan-400">{process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}</code>
+                </p>
+                <p className="text-sm text-white/70 mb-2">
+                  <strong>Make sure:</strong>
+                </p>
+                <ul className="text-sm text-white/60 list-disc list-inside space-y-1">
+                  <li>bonus-galaxy-new is running on port 3000</li>
+                  <li>NEXT_PUBLIC_API_URL is set correctly in .env</li>
+                  <li>The /api/shops endpoint exists</li>
+                </ul>
+              </div>
+              <Button onClick={fetchShops} className="mt-6 bg-cyan-500 hover:bg-cyan-600">
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
         ) : shops.length === 0 ? (
           <Card className="bg-white/5 border-white/10">
             <CardContent className="py-12 text-center">
