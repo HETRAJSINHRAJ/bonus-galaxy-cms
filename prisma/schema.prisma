@@ -205,3 +205,39 @@ model MissionAnalytics {
   @@index([missionId])
   @@index([date])
 }
+
+// ============================================
+// VOUCHER BUNDLE SYSTEM (for mobile shop)
+// ============================================
+
+model VoucherBundle {
+  id              String   @id @default(cuid())
+  
+  // Bundle Info
+  name            String
+  description     String   @db.Text
+  
+  // Pricing
+  price           Float    // Cash price in EUR
+  value           Float    // Total value of vouchers
+  pointsCost      Int      // Cost in points
+  
+  // Bundle Details
+  voucherCount    Int      @default(10) // Number of vouchers in bundle
+  paymentMethod   String   @default("cash") // "cash", "points", or "both"
+  
+  // Features
+  features        String[] // Array of feature descriptions
+  
+  // Display
+  isPopular       Boolean  @default(false)
+  displayOrder    Int      @default(0)
+  
+  // Metadata
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([isActive, displayOrder])
+  @@index([isPopular])
+}
