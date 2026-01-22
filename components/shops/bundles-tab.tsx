@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Package, Edit, Trash2, Star, Euro, Coins, Loader2 } from 'lucide-react';
+import { Plus, Package, Edit, Trash2, Star, Euro, Coins, Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { 
   getVoucherBundles, 
   createVoucherBundle, 
@@ -48,6 +48,9 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBundle, setEditingBundle] = useState<VoucherBundle | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -90,6 +93,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
 
   const handleEdit = (bundle: VoucherBundle) => {
     setEditingBundle(bundle);
+    setUploadedImages(bundle.images || []);
     setFormData({
       name: bundle.name,
       description: bundle.description,
@@ -113,6 +117,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
   };
 
   const resetForm = () => {
+    setUploadedImages([]);
     setFormData({
       name: '',
       description: '',
@@ -128,6 +133,46 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
     });
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingImage(true);
+    try {
+      const newImages: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Convert to base64
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        newImages.push(base64);
+      }
+
+      setUploadedImages(prev => [...prev, ...newImages]);
+      
+      // Clear file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert('Failed to upload images');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -138,10 +183,13 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
         .map(f => f.trim())
         .filter(f => f.length > 0);
 
-      const imagesArray = formData.images
+      // Combine uploaded images with URL images
+      const urlImages = formData.images
         .split('\n')
         .map(i => i.trim())
         .filter(i => i.length > 0);
+      
+      const allImages = [...uploadedImages, ...urlImages];
 
       const payload = {
         name: formData.name,
@@ -152,7 +200,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
         voucherCount: parseInt(formData.voucherCount),
         paymentMethod: formData.paymentMethod,
         features: featuresArray,
-        images: imagesArray,
+        images: allImages,
         isPopular: formData.isPopular,
         displayOrder: parseInt(formData.displayOrder),
       };
@@ -512,19 +560,86 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
                 />
               </div>
 
+              <div className="col-span-2 space-y-3">
+                <Label className="text-white">
+                  Bundle Images
+                </Label>
+                
+                {/* Upload button */}
+                <div className="flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    className="border-white/10 text-white hover:bg-white/5"
+                  >
+                    {uploadingImage ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Images
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-white/50 flex items-center">
+                    Select multiple images to upload
+                  </p>
+                </div>
+
+                {/* Preview uploaded images */}
+                {uploadedImages.length > 0 && (
+                  <div className="grid grid-cols-3 gap-3">
+                    {uploadedImages.map((img, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={img}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg border border-white/10"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                        <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
+                          {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="col-span-2 space-y-2">
                 <Label htmlFor="images" className="text-white">
-                  Image URLs (one per line)
+                  Or paste Image URLs (one per line)
                 </Label>
                 <Textarea
                   id="images"
                   value={formData.images}
                   onChange={(e) => setFormData({ ...formData, images: e.target.value })}
-                  placeholder="https://example.com/hotel-room-1.jpg&#10;https://example.com/hotel-room-2.jpg&#10;https://example.com/hotel-pool.jpg"
-                  rows={4}
+                  placeholder="https://example.com/hotel-room-1.jpg&#10;https://example.com/hotel-room-2.jpg"
+                  rows={3}
                   className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
                 />
-                <p className="text-xs text-white/50">Enter direct image URLs. These will be shown as a carousel on the voucher card.</p>
+                <p className="text-xs text-white/50">Alternative: Enter direct image URLs if you host them externally.</p>
               </div>
 
               <div className="col-span-2 space-y-2">
