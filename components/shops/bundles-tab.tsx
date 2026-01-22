@@ -60,7 +60,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
 
   const fetchBundles = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       console.log('Fetching bundles from:', `${apiUrl}/voucher-bundles`);
       
       const response = await fetch(`${apiUrl}/voucher-bundles`, {
@@ -136,7 +136,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
     setSubmitting(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const featuresArray = formData.features
         .split('\n')
         .map(f => f.trim())
@@ -226,7 +226,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
     if (!confirm('Are you sure you want to delete this bundle?')) return;
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(`${apiUrl}/voucher-bundles/${bundleId}`, {
         method: 'DELETE',
       });
@@ -244,7 +244,7 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
 
   const handleToggleActive = async (bundleId: string, isActive: boolean) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(`${apiUrl}/voucher-bundles/${bundleId}`, {
         method: 'PATCH',
         headers: {
@@ -295,16 +295,16 @@ export function BundlesTab({ shopId }: BundlesTabProps) {
             <p className="text-white/60 mb-4">{error}</p>
             <div className="bg-white/5 border border-white/10 rounded-lg p-4 max-w-2xl mx-auto text-left">
               <p className="text-sm text-white/70 mb-2">
-                <strong>API URL:</strong> <code className="text-cyan-400">{process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}</code>
+                <strong>API URL:</strong> <code className="text-cyan-400">{process.env.NEXT_PUBLIC_API_URL || 'Not configured'}</code>
               </p>
               <p className="text-sm text-white/70 mb-2">
                 <strong>Make sure:</strong>
               </p>
               <ul className="text-sm text-white/60 list-disc list-inside space-y-1">
-                <li>bonus-galaxy-new is running on port 3000</li>
-                <li>Run: <code className="text-cyan-400">cd bonus-galaxy-new && npm run dev</code></li>
-                <li>NEXT_PUBLIC_API_URL is set correctly in mission-cms/.env</li>
-                <li>The /api/voucher-bundles endpoint exists</li>
+                <li>NEXT_PUBLIC_API_URL is set correctly in .env (should point to bonus-galaxy-demo.vercel.app)</li>
+                <li>The bonus-galaxy-new app is deployed and running</li>
+                <li>The /api/voucher-bundles endpoint is accessible</li>
+                <li>CORS is configured to allow requests from mission-cms</li>
               </ul>
             </div>
             <Button onClick={fetchBundles} className="mt-6 bg-cyan-500 hover:bg-cyan-600">
